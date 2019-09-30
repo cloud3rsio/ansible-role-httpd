@@ -1,0 +1,10 @@
+#LoadModule mpm_prefork_module modules/mod_mpm_prefork.so
+#LoadModule mpm_worker_module modules/mod_mpm_worker.so
+#LoadModule mpm_event_module modules/mod_mpm_event.so
+{% if httpd_mpm_select == 'event' %}
+LoadModule mpm_event_module modules/mod_mpm_event.so
+{% elif httpd_mpm_select == 'worker' %}
+LoadModule mpm_worker_module modules/mod_mpm_worker.so
+{% else %}
+LoadModule mpm_prefork_module modules/mod_mpm_prefork.so
+{% endif %}

@@ -1,0 +1,13 @@
+<VirtualHost {{ httpd_Listen }}>
+DocumentRoot {{ httpd_DocumentRoot_Directory}}
+ServerName {{ httpd_ServerName }}
+SuexecUserGroup {{ httpd_SuexecUser }} {{ httpd_SuexecGroup }}
+{% if httpd_use_phpfpm_socket.enabled %}
+<Proxy "{{ httpd_use_phpfpm_socket.proxy_url }}">
+BalancerMember "{{ httpd_use_phpfpm_socket.balancer_member_url }}"
+</Proxy>
+<FilesMatch \.php$>
+SetHandler "proxy:{{ httpd_use_phpfpm_socket.proxy_url }}"
+</FilesMatch>
+{% endif %}
+</VirtualHost>

@@ -1,0 +1,72 @@
+---
+- name: Install httpd
+  yum:
+    name: httpd
+    state: present
+
+- name: Delete file
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /etc/httpd/conf.d/welcome.conf
+    - /etc/httpd/conf.d/autoindex.conf
+    - /etc/httpd/conf.d/userdir.conf
+    - /etc/httpd/conf.d/README
+
+- name: Configuration httpd.conf
+  template:
+    src: httpd.conf.j2
+    dest: /etc/httpd/conf/httpd.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart_httpd
+
+- name: Configuration 00-mpm.conf
+  template:
+    src: 00-mpm.conf.j2
+    dest: /etc/httpd/conf.modules.d/00-mpm.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart_httpd
+
+- name: Configuration 00-default.conf
+  template:
+    src: 00-default.conf.j2
+    dest: /etc/httpd/conf.d/00-default.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart_httpd
+
+- name: Install mod_ssl
+  yum:
+    name: mod_ssl
+    state: present
+  notify:
+    - restart_httpd
+  when:
+    - httpd_use_https == True
+
+- name: Configuration ssl.conf
+  template:
+    src: ssl.conf.j2
+    dest: /etc/httpd/conf.d/ssl.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - restart_httpd
+  when:
+    - httpd_use_https == True
+
+- name: Start service
+  systemd:
+    name: httpd.service
+    state: started
+    enabled: yes

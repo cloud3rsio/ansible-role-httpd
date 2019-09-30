@@ -1,0 +1,123 @@
+#
+ServerRoot {{ httpd_ServerRoot }}
+Listen {{ httpd_Listen }}
+Include conf.modules.d/*.conf
+
+User {{ httpd_User }}
+Group {{ httpd_Group }}
+
+ServerAdmin {{ httpd_ServerAdmin }}
+ServerName {{ httpd_ServerName }}
+
+<Directory />
+    AllowOverride none
+    Require all denied
+</Directory>
+
+DocumentRoot "{{ httpd_DocumentRoot_Directory }}"
+<Directory "{{ httpd_DocumentRoot_Directory }}">
+    AllowOverride {{ httpd_DocumentRoot_AllowOverride }}
+    Options {{ httpd_DocumentRoot_Options }}
+    Require {{ httpd_DocumentRoot_Require }}
+</Directory>
+
+<IfModule dir_module>
+    DirectoryIndex {{ httpd_DirectoryIndex }}
+</IfModule>
+
+<Files ".ht*">
+    Require all denied
+</Files>
+
+ErrorLog "logs/error_log"
+LogLevel warn
+<IfModule log_config_module>
+    LogFormat "{{ httpd_Log_combined_Format }}" combined
+    CustomLog "{{ httpd_Log_combined_CustomLog }}" combined
+</IfModule>
+
+<IfModule alias_module>
+    # Redirect permanent /foo http://www.example.com/bar
+    # Alias /webpath /full/filesystem/path
+    #ScriptAlias /cgi-bin/ "/var/www/cgi-bin/"
+</IfModule>
+
+<Directory "/var/www/cgi-bin">
+    AllowOverride None
+    Options None
+    Require all granted
+</Directory>
+
+<IfModule mime_module>
+    TypesConfig /etc/mime.types
+    #AddType application/x-gzip .tgz
+    #AddEncoding x-compress .Z
+    #AddEncoding x-gzip .gz .tgz
+    AddType application/x-compress .Z
+    AddType application/x-gzip .gz .tgz
+    AddHandler cgi-script .cgi .pl
+    #AddHandler type-map var
+    AddType text/html .shtml
+    AddOutputFilter INCLUDES .shtml
+</IfModule>
+
+#AddDefaultCharset UTF-8
+
+<IfModule mime_magic_module>
+    MIMEMagicFile conf/magic
+</IfModule>
+
+#ErrorDocument 500 "The server made a boo boo."
+#ErrorDocument 404 /missing.html
+#ErrorDocument 404 "/cgi-bin/missing_handler.pl"
+#ErrorDocument 402 http://www.example.com/subscription_info.html
+
+EnableMMAP {{ httpd_EnableMMAP }}
+EnableSendfile {{ httpd_EnableSendfile }}
+IncludeOptional {{ httpd_IncludeOptional }}
+
+ServerTokens {{ httpd_ServerTokens }}
+TraceEnable {{ httpd_TraceEnable }}
+Header unset "X-Powered-By"
+Header append X-Frame-Options SAMEORIGIN
+Header set X-XSS-Protection "1; mode=block"
+Header set X-Content-Type-Options nosniff
+RequestHeader unset Proxy
+
+KeepAlive {{ httpd_KeepAlive_Status }}
+MaxKeepAliveRequests {{ httpd_KeepAlive_MaxRequests }}
+KeepAliveTimeout {{ httpd_KeepAlive_Timeout }}
+
+<IfModule mpm_prefork_module>
+  StartServers {{ httpd_mpm_prefork_StartServers }}
+  MinSpareServers {{ httpd_mpm_prefork_MinSpareServers }}
+  MaxSpareServers {{ httpd_mpm_prefork_MaxSpareServers }}
+  ServerLimit {{ httpd_mpm_prefork_ServerLimit }}
+  MaxRequestWorkers {{ httpd_mpm_prefork_MaxRequestWorkers }}
+  MaxRequestsPerChild {{ httpd_mpm_prefork_MaxRequestsPerChild }}
+</IfModule>
+
+<IfModule mpm_event_module>
+  StartServers {{ httpd_mpm_event_StartServers }}
+  MinSpareThreads {{ httpd_mpm_event_MinSpareThreads }}
+  MaxSpareThreads {{ httpd_mpm_event_MaxSpareThreads }}
+  ThreadLimit {{ httpd_mpm_event_ThreadLimit }}
+  ThreadsPerChild {{ httpd_mpm_event_ThreadsPerChild }}
+  MaxRequestWorkers {{ httpd_mpm_event_MaxRequestWorkers }}
+  MaxConnectionsPerChild {{ httpd_mpm_event_MaxConnectionsPerChild }}
+</IfModule>
+
+<IfModule mod_userdir.c>
+    UserDir disabled
+    #UserDir public_html
+</IfModule>
+
+{% if httpd_ExtendedStatus == 'On' %}
+Listen {{ httpd_ExtendedStatusAddress }}
+ExtendedStatus On
+<VirtualHost {{ httpd_ExtendedStatusAddress }}>
+    <Location /server-status>
+        SetHandler server-status
+    </Location>
+</VirtualHost>
+{% endif %}
