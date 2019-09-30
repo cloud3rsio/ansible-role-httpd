@@ -51,7 +51,7 @@
   notify:
     - restart_httpd
   when:
-    - httpd_use_https == True
+    - httpd_use_https
 
 - name: Configuration ssl.conf
   template:
@@ -63,7 +63,7 @@
   notify:
     - restart_httpd
   when:
-    - httpd_use_https == True
+    - httpd_use_https
 
 - name: Start service
   systemd:
